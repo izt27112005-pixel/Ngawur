@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absensi Shalat Harian</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212; /* Warna latar belakang sangat gelap */
+            color: #e0e0e0; /* Warna teks terang */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #1e1e1e; /* Warna latar belakang sedikit lebih terang */
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 800px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4CAF50; /* Warna hijau untuk judul */
+        }
+
+        .header-controls {
+            text-align: right;
+            margin-bottom: 1rem;
+        }
+
+        #loginBtn {
+            background-color: #333;
+            color: #e0e0e0;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #loginBtn:hover {
+            background-color: #555;
+        }
+
+        .absensi-list {
+            margin-top: 2rem;
+        }
+
+        .absensi-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #333;
+        }
+
+        .absensi-item:last-child {
+            border-bottom: none;
+        }
+
+        .nama {
+            font-weight: bold;
+            color: #4CAF50;
+            width: 150px;
+        }
+
+        .shalat-status {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .shalat-status span {
+            width: 80px;
+            text-align: center;
+            padding: 0.2rem;
+            border-radius: 5px;
+            background-color: #333;
+        }
+
+        .shalat-status .hadir {
+            background-color: #4CAF50; /* Hijau untuk hadir */
+            color: white;
+        }
+
+        .shalat-status .absen {
+            background-color: #f44336; /* Merah untuk absen */
+            color: white;
+        }
+
+        .absensi-buttons {
+            display: none; /* Tombol disembunyikan secara default */
+            gap: 0.5rem;
+        }
+
+        .absensi-buttons button {
+            background-color: #555;
+            color: white;
+            border: none;
+            padding: 0.3rem 0.6rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .absensi-buttons button:hover {
+            background-color: #777;
+        }
+
+        .absensi-buttons button.hadir-btn {
+            background-color: #4CAF50;
+        }
+
+        .absensi-buttons button.absen-btn {
+            background-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Absensi Shalat Harian</h1>
+        <div class="header-controls">
+            <button id="loginBtn">Login Admin</button>
+        </div>
+        <div id="absensiList" class="absensi-list">
+            </div>
+    </div>
+
+    <script>
+        // Data
+        const NAMA_ACAK = [
+            "Ahmad", "Budi", "Citra", "Dewi", "Eko",
+            "Fahmi", "Gita", "Hana", "Indra", "Joko",
+            "Kamal", "Lina", "Mita", "Nina", "Panca",
+            "Rina", "Siti", "Taufik", "Umar", "Vina"
+        ];
+
+        const WAKTU_SHALAT = ["Subuh", "Dzuhur", "Ashar", "Maghrib", "Isya"];
+        const ADMIN_PASSWORD = "admin123"; // Ganti password ini jika perlu
+
+        let absensiData = {};
+        let isAdmin = false;
+
+        // Fungsi untuk membuat nama acak
+        function generateRandomNames(count) {
+            const shuffled = [...NAMA_ACAK].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        }
+
+        // Fungsi untuk menyimpan data ke Local Storage
+        function saveData() {
+            localStorage.setItem('absensiData', JSON.stringify(absensiData));
+        }
+
+        // Fungsi untuk memuat data dari Local Storage
+        function loadData() {
+            const data = localStorage.getItem('absensiData');
+            if (data) {
+                absensiData = JSON.parse(data);
+            } else {
+                // Jika belum ada data, buat yang baru
+                const randomNames = generateRandomNames(15);
+                randomNames.forEach(nama => {
+                    absensiData[nama] = {
+                        Subuh: "Absen",
+                        Dzuhur: "Absen",
+                        Ashar: "Absen",
+                        Maghrib: "Absen",
+                        Isya: "Absen"
+                    };
+                });
+                saveData();
+            }
+        }
+
+        // Fungsi untuk merender tampilan absensi
+        function renderAbsensi() {
+            const absensiList = document.getElementById('absensiList');
+            absensiList.innerHTML = ''; // Kosongkan daftar sebelumnya
+
+            for (const nama in absensiData) {
+                const item = document.createElement('div');
+                item.classList.add('absensi-item');
+
+                const namaSpan = document.createElement('span');
+                namaSpan.classList.add('nama');
+                namaSpan.textContent = nama;
+
+                const shalatStatus = document.createElement('div');
+                shalatStatus.classList.add('shalat-status');
+
+                WAKTU_SHALAT.forEach(waktu => {
+                    const statusSpan = document.createElement('span');
+                    statusSpan.textContent = absensiData[nama][waktu];
+                    statusSpan.classList.add(absensiData[nama][waktu].toLowerCase());
+                    shalatStatus.appendChild(statusSpan);
+                });
+
+                const absensiButtons = document.createElement('div');
+                absensiButtons.classList.add('absensi-buttons');
+
+                WAKTU_SHALAT.forEach(waktu => {
+                    const hadirBtn = document.createElement('button');
+                    hadirBtn.textContent = waktu;
+                    hadirBtn.classList.add('hadir-btn');
+                    hadirBtn.onclick = () => {
+                        absensiData[nama][waktu] = "Hadir";
+                        saveData();
+                        renderAbsensi();
+                    };
+                    absensiButtons.appendChild(hadirBtn);
+                });
+                
+                item.appendChild(namaSpan);
+                item.appendChild(shalatStatus);
+                item.appendChild(absensiButtons);
+
+                absensiList.appendChild(item);
+            }
+            
+            // Tampilkan atau sembunyikan tombol berdasarkan status admin
+            const allButtons = document.querySelectorAll('.absensi-buttons');
+            allButtons.forEach(btnContainer => {
+                btnContainer.style.display = isAdmin ? 'flex' : 'none';
+            });
+        }
+
+        // Event listener untuk tombol login
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            const password = prompt("Masukkan kata sandi admin:");
+            if (password === ADMIN_PASSWORD) {
+                isAdmin = true;
+                alert("Login berhasil! Anda sekarang adalah admin.");
+                document.getElementById('loginBtn').textContent = "Anda Admin";
+                document.getElementById('loginBtn').disabled = true;
+                renderAbsensi();
+            } else {
+                alert("Kata sandi salah. Anda hanya bisa melihat.");
+            }
+        });
+
+        // Jalankan fungsi saat halaman pertama kali dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            renderAbsensi();
+        });
+    </script>
+</body>
+</html>
